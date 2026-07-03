@@ -14,7 +14,7 @@ interface ChartsProps {
 export default function Charts({ objectives }: ChartsProps) {
   // --- Procesamiento de Datos ---
 
-  // 1. Datos para gráfico de barras: Progreso de tareas por objetivo
+  // 1. Datos para gráfico de barras: Progreso de tareas por objetivo (0-100%)
   const barData = objectives.map(obj => {
     let total = 0;
     let completed = 0;
@@ -32,13 +32,15 @@ export default function Charts({ objectives }: ChartsProps) {
       } catch (e) {}
     }
     
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
     return {
-      name: obj.titulo.length > 15 ? obj.titulo.substring(0, 15) + '...' : obj.titulo,
-      'Completadas': completed,
-      'Pendientes': total - completed,
+      name: obj.titulo.length > 18 ? obj.titulo.substring(0, 18) + '...' : obj.titulo,
+      'Completado': pct,
+      'Pendiente': 100 - pct,
       total
     };
-  }).filter(d => d.total > 0);
+  }); // Mostrar todos los objetivos del más reciente al más antiguo
 
   // 2. Datos para gráfico de líneas: Evolución histórica de evaluaciones
   // Si no hay array de evaluaciones, usamos una simulación o extraemos de nota_evaluacion
@@ -114,22 +116,42 @@ export default function Charts({ objectives }: ChartsProps) {
         <div className="h-[250px] w-full">
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                <XAxis dataKey="name" tick={{fill: '#888', fontSize: 12}} axisLine={false} tickLine={false} />
-                <YAxis tick={{fill: '#888', fontSize: 12}} axisLine={false} tickLine={false} />
+              <BarChart 
+                layout="vertical" 
+                data={barData} 
+                margin={{ top: 5, right: 20, left: 30, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" horizontal={false} />
+                <XAxis 
+                  type="number" 
+                  domain={[0, 100]} 
+                  ticks={[100]}
+                  tickFormatter={(val) => val === 100 ? "Meta" : ""}
+                  tick={{fill: '#888', fontSize: 12}} 
+                  axisLine={false} 
+                  tickLine={false} 
+                />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  tick={{fill: '#888', fontSize: 11}} 
+                  axisLine={false} 
+                  tickLine={false} 
+                  width={110}
+                />
                 <Tooltip 
+                  formatter={(value: any) => `${value}%`}
                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                   itemStyle={{ color: '#fff' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="Completadas" stackId="a" fill="#10b981" radius={[0, 0, 4, 4]} />
-                <Bar dataKey="Pendientes" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Completado" name="Avance" stackId="a" fill="#10b981" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="Pendiente" legendType="none" stackId="a" fill="#1c2136" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-              No hay tareas registradas en los objetivos.
+              No hay objetivos registrados.
             </div>
           )}
         </div>

@@ -95,12 +95,12 @@ export default function VideotecaPage() {
       if (data && data.length > 0) {
         setVideos(data);
       } else {
-        // Si la tabla está vacía, mostrar los fallbacks localmente pero de forma conectada
-        setVideos(FALLBACK_VIDEOS);
+        // Si la tabla está vacía, mostrar vacío en lugar del fallback
+        setVideos([]);
       }
     } catch (err) {
-      console.warn("Fallo al conectar con Supabase. Usando fallback de videos mock local:", err);
-      setVideos(FALLBACK_VIDEOS);
+      console.warn("Fallo al conectar con Supabase. Dejando lista vacía:", err);
+      setVideos([]);
       setIsDbConnected(false);
     } finally {
       setLoading(false);

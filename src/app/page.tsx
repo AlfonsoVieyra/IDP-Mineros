@@ -21,6 +21,7 @@ export default function Home() {
   const [role, setRole] = useState<'entrenador' | 'jugador' | null>(null);
   const [mobileView, setMobileView] = useState<'sidebar' | 'panel'>('sidebar');
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -92,15 +93,16 @@ export default function Home() {
           setSelectedPlayerId(formattedPlayers[0].id);
         }
       } else {
-        // Si no hay datos (o RLS los bloquea), usar mock por ahora
-        console.warn("No se encontraron jugadores en Supabase o RLS bloqueó la consulta. Usando datos simulados.");
-        setPlayers(mockPlayers);
-        setSelectedPlayerId(mockPlayers[0]?.id || null);
+        // Si no hay datos (o RLS los bloquea), dejamos la lista vacía
+        console.warn("No se encontraron jugadores en Supabase o RLS bloqueó la consulta.");
+        setPlayers([]);
+        setSelectedPlayerId(null);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error al cargar jugadores:", err);
-      setPlayers(mockPlayers);
-      setSelectedPlayerId(mockPlayers[0]?.id || null);
+      setErrorMsg(err.message || JSON.stringify(err));
+      setPlayers([]);
+      setSelectedPlayerId(null);
     } finally {
       setLoading(false);
     }
@@ -138,7 +140,7 @@ export default function Home() {
           setMobileView('panel');
         }} 
         onNewPlayer={() => setIsNewPlayerModalOpen(true)}
-        className={`${mobileView === 'sidebar' ? 'block' : 'hidden'} md:block`}
+        className={`${mobileView === 'sidebar' ? 'flex' : 'hidden'} md:flex`}
       />
       
       {selectedPlayer ? (
@@ -161,8 +163,15 @@ export default function Home() {
           />
         </div>
       ) : (
-        <div className={`${mobileView === 'panel' ? 'block' : 'hidden'} md:block flex-1 flex items-center justify-center bg-[#0a0a0b] text-gray-500`}>
-          No hay jugadores disponibles
+        <div className={`${mobileView === 'panel' ? 'block' : 'hidden'} md:block flex-1 flex flex-col items-center justify-center bg-[#0a0a0b] text-gray-500`}>
+          {errorMsg ? (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-xl max-w-md text-center">
+              <h3 className="font-bold mb-2 uppercase">Error de Base de Datos</h3>
+              <p className="text-sm">{errorMsg}</p>
+            </div>
+          ) : (
+            <p>No hay jugadores disponibles</p>
+          )}
         </div>
       )}
 

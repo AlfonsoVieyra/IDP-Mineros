@@ -102,16 +102,6 @@ export default function Charts({ objectives }: ChartsProps) {
       } catch (e) {}
     }
   });
-  
-  if (lineData.length === 0) {
-    // Datos mock si no hay
-    lineData = [
-      { eval: 'Ev 1', nota: 2, fecha: '10/1/2026', objetivo: 'Mantener arco en cero (Demo)', tipo: 'deportiva' },
-      { eval: 'Ev 2', nota: 3, fecha: '15/2/2026', objetivo: 'Mejorar perfil frontal (Demo)', tipo: 'tactica' },
-      { eval: 'Ev 3', nota: 4, fecha: '20/3/2026', objetivo: 'Aumentar fuerza explosiva (Demo)', tipo: 'fisica' }
-    ];
-  }
-
   // 3. Datos para Radar Chart: Sumatoria de Tareas Completadas por Categoría (Área de Progresión)
   const catTasks: Record<string, number> = {
     'tecnica': 0,
@@ -244,21 +234,28 @@ export default function Charts({ objectives }: ChartsProps) {
           Evolución del Rendimiento
         </h3>
         <div className="h-[250px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={lineData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-              <XAxis dataKey="eval" tick={{fill: '#888', fontSize: 12}} axisLine={false} tickLine={false} />
-              <YAxis 
-                domain={[0, 5]} 
-                ticks={[1, 2, 3, 4, 5]}
-                tick={{fill: '#888', fontSize: 12}} 
-                axisLine={false} 
-                tickLine={false} 
-              />
-              <Tooltip content={<CustomLineTooltip />} />
-              <Line type="monotone" dataKey="nota" name="Nota Evaluación" stroke="#d44063" strokeWidth={3} dot={{ r: 4, fill: '#d44063', strokeWidth: 2 }} activeDot={{ r: 6 }} />
-            </LineChart>
-          </ResponsiveContainer>
+          {lineData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={lineData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                <XAxis dataKey="eval" tick={{fill: '#888', fontSize: 12}} axisLine={false} tickLine={false} />
+                <YAxis 
+                  domain={[0, 5]} 
+                  ticks={[1, 2, 3, 4, 5]}
+                  tick={{fill: '#888', fontSize: 12}} 
+                  axisLine={false} 
+                  tickLine={false} 
+                />
+                <Tooltip content={<CustomLineTooltip />} />
+                <Line type="monotone" dataKey="nota" name="Nota Evaluación" stroke="#d44063" strokeWidth={3} dot={{ r: 4, fill: '#d44063', strokeWidth: 2 }} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm space-y-2 text-center p-4">
+              <span className="text-gray-400 dark:text-gray-500 font-semibold">📉 Sin evaluaciones registradas aún</span>
+              <span className="text-xs text-gray-500 max-w-xs opacity-75">Las calificaciones e historial de progreso aparecerán aquí conforme el cuerpo técnico evalúe tus metas.</span>
+            </div>
+          )}
         </div>
       </div>
 

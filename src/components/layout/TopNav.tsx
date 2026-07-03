@@ -86,8 +86,9 @@ export default function TopNav() {
       <div className="flex items-center gap-4 text-sm font-medium text-gray-500 dark:text-gray-400">
         {/* Visualización del Rol Activo */}
         {mounted && role && (
-          <div className="flex items-center gap-4">
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+          <div className="flex items-center gap-3">
+            {/* Badge de Rol (Desktop) */}
+            <div className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
               role === 'entrenador' 
                 ? 'bg-primary-950/40 border border-primary-500/30 text-primary-400' 
                 : 'bg-emerald-950/40 border border-emerald-500/30 text-emerald-400'
@@ -105,15 +106,17 @@ export default function TopNav() {
               )}
             </div>
 
+            {/* Tema (Desktop) */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 border border-gray-200 dark:border-border-accent/30 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-500 dark:text-gray-400"
+              className="hidden md:flex p-2 border border-gray-200 dark:border-border-accent/30 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-500 dark:text-gray-400"
               aria-label="Alternar modo oscuro"
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
 
-            <form action={signOut}>
+            {/* Salir (Desktop) */}
+            <form action={signOut} className="hidden md:block">
               <button 
                 type="submit"
                 className="text-xs border border-gray-200 dark:border-border-accent/30 rounded-lg px-3 py-1.5 hover:bg-red-500/10 hover:text-red-500 dark:hover:bg-red-500/20 hover:border-red-500/30 transition-all text-white font-semibold cursor-pointer flex items-center gap-1.5"
@@ -122,7 +125,7 @@ export default function TopNav() {
               </button>
             </form>
 
-            {/* Botón hamburguesa móvil */}
+            {/* Botón hamburguesa móvil (Siempre visible en celular) */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 border border-gray-200 dark:border-border-accent/30 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-500 dark:text-gray-400 cursor-pointer"
@@ -137,24 +140,86 @@ export default function TopNav() {
 
     {/* Menú desplegable móvil */}
     {mobileMenuOpen && role && (
-      <div className="md:hidden absolute top-16 left-0 right-0 bg-white dark:bg-[#0b0f19] border-b border-gray-200 dark:border-border-accent/30 flex flex-col p-4 space-y-2.5 z-50 shadow-xl animate-in slide-in-from-top-2 duration-200">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          if (role === 'jugador' && item.href === '/') return null;
-          
-          return (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className={`text-sm font-bold py-2.5 px-4 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5 hover:text-primary-500 flex items-center ${
-                isActive ? 'text-primary-600 dark:text-primary-400 bg-primary-500/5' : 'text-gray-500 dark:text-gray-400'
-              }`}
+      <div className="md:hidden absolute top-16 left-0 right-0 bg-white dark:bg-[#0b0f19] border-b border-gray-200 dark:border-border-accent/30 flex flex-col p-4 space-y-4 z-50 shadow-xl animate-in slide-in-from-top-2 duration-200">
+        
+        {/* Enlaces de navegación */}
+        <div className="flex flex-col space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            if (role === 'jugador' && item.href === '/') return null;
+            
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`text-sm font-bold py-2.5 px-4 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5 hover:text-primary-500 flex items-center ${
+                  isActive ? 'text-primary-600 dark:text-primary-400 bg-primary-500/5' : 'text-gray-500 dark:text-gray-400'
+                }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Separador */}
+        <div className="h-px bg-gray-100 dark:bg-white/5" />
+
+        {/* Detalles del usuario y controles de cuenta */}
+        <div className="flex flex-col gap-3">
+          {/* Badge del Usuario */}
+          <div className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold w-fit ${
+            role === 'entrenador' 
+              ? 'bg-primary-950/40 border border-primary-500/30 text-primary-400' 
+              : 'bg-emerald-950/40 border border-emerald-500/30 text-emerald-400'
+          }`}>
+            {role === 'entrenador' ? (
+              <>
+                <ShieldAlert size={14} />
+                <span>Míster: {userName}</span>
+              </>
+            ) : (
+              <>
+                <User size={14} />
+                <span>Jugador: {userName}</span>
+              </>
+            )}
+          </div>
+
+          {/* Fila de Botón de Tema y Botón de Salir */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setTheme(theme === 'dark' ? 'light' : 'dark');
+                setMobileMenuOpen(false);
+              }}
+              className="flex-1 p-2.5 border border-gray-200 dark:border-border-accent/30 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-500 dark:text-gray-400 flex items-center justify-center gap-2 text-xs font-bold"
+              aria-label="Alternar modo oscuro"
             >
-              {item.name}
-            </Link>
-          );
-        })}
+              {theme === 'dark' ? (
+                <>
+                  <Sun size={14} />
+                  <span>Modo Claro</span>
+                </>
+              ) : (
+                <>
+                  <Moon size={14} />
+                  <span>Modo Oscuro</span>
+                </>
+              )}
+            </button>
+
+            <form action={signOut} className="flex-1">
+              <button 
+                type="submit"
+                className="w-full text-xs border border-gray-200 dark:border-border-accent/30 rounded-lg py-2.5 hover:bg-red-500/10 hover:text-red-500 dark:hover:bg-red-500/20 hover:border-red-500/30 transition-all text-white font-bold cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <LogOut size={14} /> Salir
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     )}
     </>

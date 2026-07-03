@@ -100,11 +100,11 @@ export default function ProgresoPage() {
         {/* Header y Controles */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 dark:border-border-accent/30 pb-6">
           <div>
-            <h1 className="text-3xl font-black uppercase tracking-tight flex items-center gap-3">
-              <Activity className="text-primary-600" size={32} />
-              Progreso <span className="text-primary-600">Individual</span>
+            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-2 md:gap-3 flex-wrap">
+              <Activity className="text-primary-600 shrink-0" size={28} />
+              <span>Progreso <span className="text-primary-600">Individual</span></span>
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Análisis estadístico y multimedia de objetivos</p>
+            <p className="text-gray-500 dark:text-gray-400 text-xs md:text-sm mt-1">Análisis estadístico y multimedia de objetivos</p>
           </div>
           
           {role === 'entrenador' && players.length > 0 && (

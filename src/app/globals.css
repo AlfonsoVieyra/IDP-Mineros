@@ -1,26 +1,66 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --font-sans: "Inter", "Outfit", system-ui, sans-serif;
+  
+  --color-primary-50: #fdf2f4;
+  --color-primary-100: #fbe5e9;
+  --color-primary-200: #f6ccd5;
+  --color-primary-300: #efa3b5;
+  --color-primary-400: #e46d89;
+  --color-primary-500: #d44063;
+  --color-primary-600: #b92445;
+  --color-primary-700: #9c1a36;
+  --color-primary-800: #831830;
+  --color-primary-900: #70182c;
+  --color-primary-950: #3f0914;
+  
+  --color-secondary-50: #eff6ff;
+  --color-secondary-100: #dbeafe;
+  --color-secondary-200: #bfdbfe;
+  --color-secondary-300: #93c5fd;
+  --color-secondary-400: #60a5fa;
+  --color-secondary-500: #3b82f6;
+  --color-secondary-600: #2563eb;
+  --color-secondary-700: #1d4ed8;
+  --color-secondary-800: #1e40af;
+  --color-secondary-900: #1e3a8a;
+  --color-secondary-950: #172554;
 
-@theme inline {
+  --color-card: var(--card);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-border-accent: var(--border-accent);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --border-accent: #e2e8f0;
+}
+
+.dark {
+  --background: #0b0f19; /* Fondo oscuro muy profundo (azul muy oscuro) */
+  --foreground: #f8fafc;
+  --card: #131828; /* Color de tarjeta que resalte sobre el fondo */
+  --border-accent: #38bdf8; /* Azul claro resaltante (cyan/sky) */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utilidades Premium UI */
+.glass-panel {
+  @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl;
+}
+
+.dark .glass-panel {
+  @apply bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl;
 }

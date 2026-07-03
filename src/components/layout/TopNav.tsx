@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Target, User, ShieldAlert, LogOut, Sun, Moon, Menu, X } from 'lucide-react';
+import { User, ShieldAlert, LogOut, Sun, Moon, Menu, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { signOut } from '@/app/login/actions';
 import { useTheme } from 'next-themes';
@@ -52,17 +52,19 @@ export default function TopNav() {
   return (
     <>
     <header className="w-full h-16 border-b border-gray-200 dark:border-border-accent/30 bg-white dark:bg-background flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
-      <div className="flex items-center gap-3">
-        <div className="bg-primary-600 p-2 rounded-lg text-white">
-          <Target size={20} />
-        </div>
+      <div className="flex items-center gap-2">
+        <img 
+          src="/logo.png" 
+          alt="Mineros Logo" 
+          className="w-11 h-11 rounded-lg object-contain -ml-1.5 -mr-1.5"
+        />
         <span className="font-bold text-lg tracking-tight">
           IDP <span className="text-primary-600">MINEROS</span>
         </span>
       </div>
       
       <nav className="hidden md:flex items-center gap-6">
-        {navItems.map((item) => {
+        {role && navItems.map((item) => {
           const isActive = pathname === item.href;
           // Si el rol es jugador y es la página principal '/', no la renderizamos
           if (role === 'jugador' && item.href === '/') return null;
@@ -134,7 +136,7 @@ export default function TopNav() {
     </header>
 
     {/* Menú desplegable móvil */}
-    {mobileMenuOpen && (
+    {mobileMenuOpen && role && (
       <div className="md:hidden absolute top-16 left-0 right-0 bg-white dark:bg-[#0b0f19] border-b border-gray-200 dark:border-border-accent/30 flex flex-col p-4 space-y-2.5 z-50 shadow-xl animate-in slide-in-from-top-2 duration-200">
         {navItems.map((item) => {
           const isActive = pathname === item.href;

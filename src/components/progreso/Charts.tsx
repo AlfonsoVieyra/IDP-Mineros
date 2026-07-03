@@ -7,6 +7,32 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
 
+// Componente personalizado para el Tooltip de la Evolución de Rendimiento
+const CustomLineTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-[#1e293b] p-4 rounded-xl border border-white/5 shadow-2xl text-white text-xs space-y-1.5 max-w-[280px]">
+        <p className="font-bold text-gray-400">{label} ({data.fecha})</p>
+        <p className="text-sm font-semibold flex items-center gap-1.5 text-primary-400">
+          Nota: <span className="font-extrabold text-white text-base">{data.nota} / 5</span>
+        </p>
+        {data.objetivo && (
+          <p className="text-gray-300 leading-relaxed">
+            <span className="font-bold text-gray-400">Objetivo:</span> {data.objetivo}
+          </p>
+        )}
+        {data.tipo && (
+          <p className="text-gray-300 capitalize">
+            <span className="font-bold text-gray-400">Tipo:</span> {data.tipo}
+          </p>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
+
 interface ChartsProps {
   objectives: ObjetivoIDP[];
 }
@@ -51,7 +77,9 @@ export default function Charts({ objectives }: ChartsProps) {
       lineData.push({
         eval: `Ev ${evalCounter}`,
         nota: obj.nota_evaluacion,
-        fecha: new Date(obj.updated_at).toLocaleDateString()
+        fecha: new Date(obj.updated_at).toLocaleDateString(),
+        objetivo: obj.titulo,
+        tipo: obj.categoria
       });
       evalCounter++;
     }
@@ -64,7 +92,9 @@ export default function Charts({ objectives }: ChartsProps) {
              lineData.push({
                eval: `Ev ${evalCounter}`,
                nota: ev.nota || ev.estrellas,
-               fecha: ev.fecha
+               fecha: ev.fecha,
+               objetivo: obj.titulo,
+               tipo: obj.categoria
              });
              evalCounter++;
           });
@@ -76,33 +106,59 @@ export default function Charts({ objectives }: ChartsProps) {
   if (lineData.length === 0) {
     // Datos mock si no hay
     lineData = [
-      { eval: 'Ev 1', nota: 2, fecha: '10/1/2026' },
-      { eval: 'Ev 2', nota: 3, fecha: '15/2/2026' },
-      { eval: 'Ev 3', nota: 4, fecha: '20/3/2026' }
+      { eval: 'Ev 1', nota: 2, fecha: '10/1/2026', objetivo: 'Mantener arco en cero (Demo)', tipo: 'deportiva' },
+      { eval: 'Ev 2', nota: 3, fecha: '15/2/2026', objetivo: 'Mejorar perfil frontal (Demo)', tipo: 'tactica' },
+      { eval: 'Ev 3', nota: 4, fecha: '20/3/2026', objetivo: 'Aumentar fuerza explosiva (Demo)', tipo: 'fisica' }
     ];
   }
 
-  // 3. Datos para Radar Chart: Competencias por Categoría
-  const catScores: Record<string, { total: number, count: number }> = {
-    'tecnica': { total: 0, count: 0 },
-    'tactica': { total: 0, count: 0 },
-    'fisica': { total: 0, count: 0 },
-    'deportiva': { total: 0, count: 0 }
+  // 3. Datos para Radar Chart: Sumatoria de Tareas Completadas por Categoría (Área de Progresión)
+  const catTasks: Record<string, number> = {
+    'tecnica': 0,
+    'tactica': 0,
+    'fisica': 0,
+    'deportiva': 0
   };
   
   objectives.forEach(obj => {
     const cat = obj.categoria?.toLowerCase() || 'deportiva';
-    if (catScores[cat] !== undefined) {
-      catScores[cat].total += (obj.nota_evaluacion || 2); // default to 2 if missing
-      catScores[cat].count += 1;
+    if (catTasks[cat] !== undefined && obj.tareas_desarrollo) {
+      try {
+        const tareas = typeof obj.tareas_desarrollo === 'string' 
+          ? JSON.parse(obj.tareas_desarrollo) 
+          : obj.tareas_desarrollo;
+          
+        if (Array.isArray(tareas)) {
+          const completedCount = tareas.filter(t => t.completed).length;
+          catTasks[cat] += completedCount;
+        }
+      } catch (e) {}
     }
   });
 
+  const maxCompleted = Math.max(catTasks.tecnica, catTasks.tactica, catTasks.fisica, catTasks.deportiva);
+  
+  // Generar ticks y max de dominio limpios y proporcionales
+  let ticks: number[] = [];
+  let radarDomainMax = 6;
+  
+  if (maxCompleted <= 6) {
+    ticks = [2, 4, 6];
+    radarDomainMax = 6;
+  } else {
+    // Redondear al siguiente múltiplo de 3 para mantener simetría
+    radarDomainMax = Math.ceil(maxCompleted / 3) * 3;
+    const step = Math.ceil(radarDomainMax / 3);
+    for (let i = step; i <= radarDomainMax; i += step) {
+      ticks.push(i);
+    }
+  }
+
   const radarData = [
-    { subject: 'Técnica', A: catScores.tecnica.count > 0 ? (catScores.tecnica.total / catScores.tecnica.count) * 20 : 60 },
-    { subject: 'Táctica', A: catScores.tactica.count > 0 ? (catScores.tactica.total / catScores.tactica.count) * 20 : 70 },
-    { subject: 'Física', A: catScores.fisica.count > 0 ? (catScores.fisica.total / catScores.fisica.count) * 20 : 85 },
-    { subject: 'Mental/Deportiva', A: catScores.deportiva.count > 0 ? (catScores.deportiva.total / catScores.deportiva.count) * 20 : 50 },
+    { subject: 'Técnica', A: catTasks.tecnica },
+    { subject: 'Táctica', A: catTasks.tactica },
+    { subject: 'Física', A: catTasks.fisica },
+    { subject: 'Mental/Deportiva', A: catTasks.deportiva },
   ];
 
   return (
@@ -157,18 +213,26 @@ export default function Charts({ objectives }: ChartsProps) {
         </div>
       </div>
 
-      {/* 2. Radar Chart: Mapeo Funcional */}
+      {/* 2. Radar Chart: Área de Progresión */}
       <div className="bg-white dark:bg-card border border-gray-200 dark:border-border-accent/30 rounded-xl p-5 shadow-sm col-span-1">
         <h3 className="font-bold uppercase text-gray-800 dark:text-gray-200 mb-2 text-sm tracking-wide">
-          Mapeo Funcional
+          Área de Progresión
         </h3>
         <div className="h-[250px] w-full -mt-4">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
               <PolarGrid stroke="#475569" />
               <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
-              <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-              <Radar name="Promedio" dataKey="A" stroke="#38bdf8" fill="#38bdf8" fillOpacity={0.4} />
+              <PolarRadiusAxis 
+                angle={30} 
+                domain={[0, radarDomainMax]} 
+                ticks={ticks}
+                tick={true} 
+                tickFormatter={(val) => Math.round(val).toString()} 
+                axisLine={false} 
+                tick={{ fill: '#64748b', fontSize: 9 }} 
+              />
+              <Radar name="Tareas Completadas" dataKey="A" stroke="#38bdf8" fill="#38bdf8" fillOpacity={0.4} />
               <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
             </RadarChart>
           </ResponsiveContainer>
@@ -185,11 +249,14 @@ export default function Charts({ objectives }: ChartsProps) {
             <LineChart data={lineData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
               <XAxis dataKey="eval" tick={{fill: '#888', fontSize: 12}} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 5]} tick={{fill: '#888', fontSize: 12}} axisLine={false} tickLine={false} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                labelStyle={{ color: '#94a3b8' }}
+              <YAxis 
+                domain={[0, 5]} 
+                ticks={[1, 2, 3, 4, 5]}
+                tick={{fill: '#888', fontSize: 12}} 
+                axisLine={false} 
+                tickLine={false} 
               />
+              <Tooltip content={<CustomLineTooltip />} />
               <Line type="monotone" dataKey="nota" name="Nota Evaluación" stroke="#d44063" strokeWidth={3} dot={{ r: 4, fill: '#d44063', strokeWidth: 2 }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>

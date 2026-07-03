@@ -271,11 +271,8 @@ export default function VideotecaPage() {
           <div>
             <h1 className="text-3xl font-extrabold uppercase tracking-tight text-white flex items-center gap-2.5">
               <Film className="text-primary-500" size={28} />
-              <span>Videoteca Táctica</span>
+              <span>Videoteca</span>
             </h1>
-            <p className="text-sm text-gray-400 mt-1">
-              Plataforma de análisis audiovisual de partidos y entrenamientos para minería táctica.
-            </p>
           </div>
         </div>
 

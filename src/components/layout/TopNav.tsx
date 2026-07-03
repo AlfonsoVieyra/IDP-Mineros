@@ -10,6 +10,7 @@ import { useTheme } from 'next-themes';
 
 export default function TopNav() {
   const pathname = usePathname();
+  const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<'entrenador' | 'jugador' | null>(null);
   const [userName, setUserName] = useState<string>('');
   const [mounted, setMounted] = useState(false);
@@ -27,19 +28,29 @@ export default function TopNav() {
     setMounted(true);
     
     async function loadUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('usuarios')
-          .select('nombre, apellidos, rol')
-          .eq('id', user.id)
-          .single();
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          setUser(authUser);
           
-        if (data) {
-          const u = data as any;
-          setRole(u.rol);
-          setUserName(u.apellidos ? `${u.nombre} ${u.apellidos}` : u.nombre);
+          const { data, error } = await supabase
+            .from('usuarios')
+            .select('nombre, apellidos, rol')
+            .eq('id', authUser.id)
+            .single();
+            
+          if (data) {
+            const u = data as any;
+            setRole(u.rol);
+            setUserName(u.apellidos ? `${u.nombre} ${u.apellidos}` : u.nombre);
+          } else {
+            // Fallback si la fila de usuarios no existe o no tiene rol
+            setRole('entrenador');
+            setUserName(authUser.email?.split('@')[0] || 'Usuario');
+          }
         }
+      } catch (err) {
+        console.error("Error al cargar sesión/perfil en TopNav:", err);
       }
     }
     
@@ -85,7 +96,7 @@ export default function TopNav() {
 
       <div className="flex items-center gap-4 text-sm font-medium text-gray-500 dark:text-gray-400">
         {/* Visualización del Rol Activo */}
-        {mounted && role && (
+        {mounted && user && (
           <div className="flex items-center gap-3">
             {/* Badge de Rol (Desktop) */}
             <div className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
@@ -139,7 +150,7 @@ export default function TopNav() {
     </header>
 
     {/* Menú desplegable móvil */}
-    {mobileMenuOpen && role && (
+    {mobileMenuOpen && user && (
       <div className="md:hidden absolute top-16 left-0 right-0 bg-white dark:bg-[#0b0f19] border-b border-gray-200 dark:border-border-accent/30 flex flex-col p-4 space-y-4 z-50 shadow-xl animate-in slide-in-from-top-2 duration-200">
         
         {/* Enlaces de navegación */}

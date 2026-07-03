@@ -227,7 +227,6 @@ export default function Charts({ objectives }: ChartsProps) {
                 angle={30} 
                 domain={[0, radarDomainMax]} 
                 ticks={ticks}
-                tick={true} 
                 tickFormatter={(val) => Math.round(val).toString()} 
                 axisLine={false} 
                 tick={{ fill: '#64748b', fontSize: 9 }} 

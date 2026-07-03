@@ -61,7 +61,7 @@ export default function Charts({ objectives }: ChartsProps) {
     const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
     
     return {
-      name: obj.titulo.length > 18 ? obj.titulo.substring(0, 18) + '...' : obj.titulo,
+      name: obj.titulo,
       'Completado': pct,
       'Pendiente': 100 - pct,
       total
@@ -165,7 +165,7 @@ export default function Charts({ objectives }: ChartsProps) {
               <BarChart 
                 layout="vertical" 
                 data={barData} 
-                margin={{ top: 5, right: 20, left: 30, bottom: 5 }}
+                margin={{ top: 5, right: 20, left: -20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" horizontal={false} />
                 <XAxis 
@@ -183,7 +183,8 @@ export default function Charts({ objectives }: ChartsProps) {
                   tick={{fill: '#888', fontSize: 11}} 
                   axisLine={false} 
                   tickLine={false} 
-                  width={110}
+                  width={80}
+                  tickFormatter={(val) => val.length > 14 ? `${val.substring(0, 11)}...` : val}
                 />
                 <Tooltip 
                   formatter={(value: any) => `${value}%`}

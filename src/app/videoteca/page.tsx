@@ -226,10 +226,15 @@ export default function VideotecaPage() {
   // Seleccionar video para modo teatro
   const handleSelectVideo = (video: Videoteca) => {
     setActiveVideo(video);
-    // Auto scroll suave hacia arriba de la sección de reproducción
-    const playerElement = document.getElementById('theater-player-container');
-    if (playerElement) {
-      playerElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Solo auto scroll en pantallas medianas y grandes (Desktop/Tablet)
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      setTimeout(() => {
+        const playerElement = document.getElementById('theater-player-container');
+        if (playerElement) {
+          playerElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     }
   };
 
@@ -277,8 +282,9 @@ export default function VideotecaPage() {
         </div>
 
         {/* MODO TEATRO INTEGRADO (Reproductor Principal Superior) */}
+        {/* MODO TEATRO INTEGRADO (Reproductor Principal Superior - Solo Desktop/Tablet) */}
         {activeVideo && (
-          <div id="theater-player-container" className="w-full shrink-0">
+          <div id="theater-player-container" className="w-full shrink-0 hidden md:block">
             <div className="bg-[#111424] border border-white/10 rounded-2xl p-4 md:p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 duration-300 relative">
               
               {/* Botón para cerrar el Modo Teatro y colapsar el reproductor */}
@@ -479,6 +485,67 @@ export default function VideotecaPage() {
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveVideo}
         />
+      )}
+
+      {/* REPRODUCTOR MODAL MÓVIL (Solo Celulares) */}
+      {activeVideo && (
+        <div 
+          onClick={() => setActiveVideo(null)}
+          className="md:hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#111424] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col gap-4 p-4 relative animate-in zoom-in-95 duration-200"
+          >
+            {/* Botón para cerrar */}
+            <button 
+              onClick={() => setActiveVideo(null)} 
+              className="absolute -top-3 -right-3 p-2 bg-primary-600 hover:bg-primary-500 rounded-full text-white shadow-lg hover:scale-105 transition-all cursor-pointer z-10"
+              title="Cerrar"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Contenedor del Iframe con aspect-ratio 16:9 */}
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-white/5 bg-black">
+              <iframe
+                src={getYoutubeEmbedUrl(activeVideo.url_youtube)}
+                title={activeVideo.titulo}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full border-0"
+              />
+            </div>
+
+            {/* Información del Video Activo */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${getBadgeStyles(activeVideo.competencia)}`}>
+                  {activeVideo.competencia}
+                </span>
+                <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                  <Calendar size={10} />
+                  Registrado: {activeVideo.fecha_registro || 'N/A'}
+                </span>
+              </div>
+              <h2 className="text-base font-bold text-white tracking-tight leading-snug">
+                {activeVideo.titulo}
+              </h2>
+            </div>
+            
+            {role === 'entrenador' && (
+              <a 
+                href={activeVideo.url_youtube} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors w-full"
+              >
+                Abrir en YouTube
+                <ExternalLink size={12} />
+              </a>
+            )}
+          </div>
+        </div>
       )}
 
     </div>

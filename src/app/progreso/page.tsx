@@ -12,6 +12,7 @@ export default function ProgresoPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [players, setPlayers] = useState<any[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>('');
+  const [selectedTeam, setSelectedTeam] = useState<string>('ALL');
   const [objectives, setObjectives] = useState<ObjetivoIDP[]>([]);
   const [expandedObjectiveId, setExpandedObjectiveId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +43,7 @@ export default function ProgresoPage() {
           // Fetch players
           const { data: playersData } = await supabase
             .from('usuarios')
-            .select('id, nombre, apellidos, foto_url, plantilla(dorsal, posicion)')
+            .select('id, nombre, apellidos, foto_url, plantilla(equipo, dorsal, posicion)')
             .eq('rol', 'jugador');
             
           if (playersData && playersData.length > 0) {
@@ -82,6 +83,41 @@ export default function ProgresoPage() {
     loadPlayerData();
   }, [selectedPlayerId, supabase]);
 
+  // Obtener lista única de equipos de los jugadores
+  const teams = Array.from(
+    new Set(
+      players
+        .map(p => {
+          const pArr = Array.isArray(p.plantilla) ? p.plantilla : [p.plantilla];
+          return pArr[0]?.equipo || 'Sin Equipo';
+        })
+        .filter(Boolean)
+    )
+  ) as string[];
+
+  const filteredPlayersByTeam = players.filter(p => {
+    if (selectedTeam === 'ALL') return true;
+    const pArr = Array.isArray(p.plantilla) ? p.plantilla : [p.plantilla];
+    const playerTeam = pArr[0]?.equipo || 'Sin Equipo';
+    return playerTeam === selectedTeam;
+  });
+
+  const handleTeamChange = (team: string) => {
+    setSelectedTeam(team);
+    const filtered = players.filter(p => {
+      if (team === 'ALL') return true;
+      const pArr = Array.isArray(p.plantilla) ? p.plantilla : [p.plantilla];
+      const playerTeam = pArr[0]?.equipo || 'Sin Equipo';
+      return playerTeam === team;
+    });
+    if (filtered.length > 0) {
+      const currentIsStillIn = filtered.some(p => p.id === selectedPlayerId);
+      if (!currentIsStillIn) {
+        setSelectedPlayerId(filtered[0].id);
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0a0a0b] dark:bg-background flex items-center justify-center">
@@ -108,27 +144,49 @@ export default function ProgresoPage() {
           </div>
           
           {role === 'entrenador' && players.length > 0 && (
-            <div className="flex items-center gap-3 bg-white dark:bg-card p-2 pr-4 rounded-xl shadow-sm border border-gray-200 dark:border-border-accent/30">
-              {selectedPlayerInfo && (
-                <img 
-                  src={selectedPlayerInfo.foto_url || `https://i.pravatar.cc/150?u=${selectedPlayerInfo.id}`}
-                  alt="Player" 
-                  className="w-10 h-10 rounded-full object-cover border-2 border-primary-500/50"
-                />
-              )}
-              <div className="flex flex-col">
-                <label className="text-[10px] font-bold text-gray-500 uppercase">Evaluando a:</label>
-                <select 
-                  value={selectedPlayerId}
-                  onChange={e => setSelectedPlayerId(e.target.value)}
-                  className="bg-transparent text-sm font-bold outline-none cursor-pointer text-primary-600 dark:text-primary-400"
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white dark:bg-card p-3 rounded-2xl shadow-sm border border-gray-200 dark:border-border-accent/30">
+              {/* Selector 1: Equipo */}
+              <div className="flex flex-col px-3 py-1 border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-white/10 sm:min-w-[150px]">
+                <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Equipo:</label>
+                <select
+                  value={selectedTeam}
+                  onChange={e => handleTeamChange(e.target.value)}
+                  className="bg-transparent text-sm font-bold outline-none cursor-pointer text-primary-600 dark:text-primary-400 mt-0.5"
                 >
-                  {players.map(p => (
-                    <option key={p.id} value={p.id} className="dark:bg-card">
-                      {p.nombre} {p.apellidos} {p.plantilla?.[0]?.dorsal ? `(#${p.plantilla[0].dorsal})` : ''}
-                    </option>
+                  <option value="ALL" className="dark:bg-card">Todos los Equipos</option>
+                  {teams.map(t => (
+                    <option key={t} value={t} className="dark:bg-card">{t}</option>
                   ))}
                 </select>
+              </div>
+
+              {/* Selector 2: Jugador */}
+              <div className="flex items-center gap-3 pl-0 sm:pl-3 pr-2 py-1">
+                {selectedPlayerInfo && (
+                  <img 
+                    src={selectedPlayerInfo.foto_url || `https://i.pravatar.cc/150?u=${selectedPlayerInfo.id}`}
+                    alt="Player" 
+                    className="w-10 h-10 rounded-full object-cover border-2 border-primary-500/50 shrink-0"
+                  />
+                )}
+                <div className="flex flex-col sm:min-w-[180px]">
+                  <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Jugador:</label>
+                  <select 
+                    value={selectedPlayerId}
+                    onChange={e => setSelectedPlayerId(e.target.value)}
+                    className="bg-transparent text-sm font-bold outline-none cursor-pointer text-primary-600 dark:text-primary-400 mt-0.5"
+                  >
+                    {filteredPlayersByTeam.map(p => {
+                      const pArr = Array.isArray(p.plantilla) ? p.plantilla : [p.plantilla];
+                      const dorsal = pArr[0]?.dorsal;
+                      return (
+                        <option key={p.id} value={p.id} className="dark:bg-card">
+                          {p.nombre} {p.apellidos} {dorsal ? `(#${dorsal})` : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
               </div>
             </div>
           )}

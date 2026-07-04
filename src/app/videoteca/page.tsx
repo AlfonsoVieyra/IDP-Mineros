@@ -12,6 +12,7 @@ import AddVideoModal from '@/components/modals/AddVideoModal';
 const FILTER_OPTIONS = [
   { label: 'TODOS', value: 'ALL' },
   { label: 'COMPETENCIAS', value: 'COMPETENCIA' },
+  { label: 'AMISTOSOS', value: 'Amistoso' },
   { label: 'ENTRENAMIENTOS', value: 'Entrenamiento' },
   { label: 'REFERENCIAS', value: 'Referencia' }
 ];
@@ -60,6 +61,14 @@ const FALLBACK_VIDEOS: Videoteca[] = [
   },
   {
     id: 'mock-vid-6',
+    titulo: 'Partido Amistoso de Preparación - Pretemporada',
+    competencia: 'Amistoso',
+    url_youtube: 'https://www.youtube.com/watch?v=kly6Q29W9S4',
+    fecha_registro: '2026-07-04',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'mock-vid-7',
     titulo: 'Referencia Táctica: Estructura Defensiva en Rombo 4-4-2',
     competencia: 'Referencia',
     url_youtube: 'https://www.youtube.com/watch?v=kly6Q29W9S4',
@@ -251,6 +260,8 @@ export default function VideotecaPage() {
         return 'bg-emerald-950/50 text-emerald-400 border-emerald-500/20';
       case 'Referencia':
         return 'bg-rose-950/50 text-rose-400 border-rose-500/20';
+      case 'Amistoso':
+        return 'bg-cyan-950/50 text-cyan-400 border-cyan-500/20';
       default:
         return 'bg-gray-950/50 text-gray-400 border-gray-500/20';
     }

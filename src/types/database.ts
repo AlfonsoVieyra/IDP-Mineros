@@ -3,7 +3,7 @@ export type CategoriaObjetivo = 'deportiva' | 'tecnica' | 'tactica' | 'fisica';
 export type EstadoObjetivo = 'pendiente' | 'en_desarrollo' | 'completado';
 export type TipoGraficoSeguimiento = 'barras' | 'lineas' | 'contador' | 'radar';
 export type TipoRecurso = 'video' | 'pdf' | 'imagen' | 'slides';
-export type CompetenciaVideoteca = 'Liga TDP' | 'Copa Conecta' | 'Copa Promesas' | 'Entrenamiento' | 'Referencia';
+export type CompetenciaVideoteca = 'Liga TDP' | 'Copa Conecta' | 'Copa Promesas' | 'Entrenamiento' | 'Referencia' | 'Amistoso';
 
 export interface Usuario {
   id: string;

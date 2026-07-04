@@ -28,7 +28,7 @@ export default function NewPlayerModal({ isOpen, onClose, initialData }: NewPlay
     altura_cm: '180',
     peso_kg: '75',
     dorsal: '1',
-    equipo: 'Mineros Zacatecas',
+    equipo: 'TDP',
   });
 
   // Cuando initialData cambie o el modal se abra, poblamos el estado
@@ -50,7 +50,7 @@ export default function NewPlayerModal({ isOpen, onClose, initialData }: NewPlay
         altura_cm: initialData.plantilla?.altura_cm?.toString() || '180',
         peso_kg: initialData.plantilla?.peso_kg?.toString() || '75',
         dorsal: initialData.plantilla?.dorsal?.toString() || '1',
-        equipo: initialData.plantilla?.equipo || 'Mineros Zacatecas',
+        equipo: initialData.plantilla?.equipo || 'TDP',
       });
       if (initialData.fotografia) {
         setPreviewUrl(initialData.fotografia);
@@ -70,7 +70,7 @@ export default function NewPlayerModal({ isOpen, onClose, initialData }: NewPlay
         altura_cm: '180',
         peso_kg: '75',
         dorsal: '1',
-        equipo: 'Mineros Zacatecas',
+        equipo: 'TDP',
       });
     }
   }, [initialData, isOpen]);
@@ -457,13 +457,17 @@ export default function NewPlayerModal({ isOpen, onClose, initialData }: NewPlay
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">Equipo</label>
-                <input 
-                  type="text" 
+                <select 
                   name="equipo"
                   value={formData.equipo}
                   onChange={handleChange}
                   className="w-full bg-gray-50 dark:bg-background border border-gray-200 dark:border-border-accent/30 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 dark:text-white"
-                />
+                >
+                  <option value="TDP">TDP</option>
+                  <option value="Premier">Premier</option>
+                  <option value="Sub-16">Sub-16</option>
+                  <option value="Sub-13">Sub-13</option>
+                </select>
               </div>
             </div>
           </section>

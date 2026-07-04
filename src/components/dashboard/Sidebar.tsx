@@ -23,8 +23,12 @@ export default function Sidebar({ players, selectedPlayerId, onSelectPlayer, onN
   const [userInitial, setUserInitial] = useState<string>('N');
 
   const filteredPlayers = players.filter(p => {
-    const matchSearch = p.nombre.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = activeFilter === 'TODOS' || p.plantilla.demarcacion?.toUpperCase() === activeFilter;
+    const searchLower = search.toLowerCase();
+    const fullName = `${p.nombre || ''} ${p.apellidos || ''}`.toLowerCase();
+    const equipo = (p.plantilla?.equipo || '').toLowerCase();
+    
+    const matchSearch = fullName.includes(searchLower) || equipo.includes(searchLower);
+    const matchFilter = activeFilter === 'TODOS' || p.plantilla?.demarcacion?.toUpperCase() === activeFilter;
     return matchSearch && matchFilter;
   });
 

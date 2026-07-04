@@ -135,6 +135,7 @@ export default function AddVideoModal({ isOpen, onClose, onSave }: AddVideoModal
               <option value="Liga TDP">Liga TDP</option>
               <option value="Copa Conecta">Copa Conecta</option>
               <option value="Copa Promesas">Copa Promesas</option>
+              <option value="Amistoso">Amistoso</option>
               <option value="Entrenamiento">Entrenamiento</option>
               <option value="Referencia">Referencia</option>
             </select>

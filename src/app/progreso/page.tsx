@@ -261,6 +261,32 @@ export default function ProgresoPage() {
         {/* Modal de Detalle de Objetivo (Premium Overlay) */}
         {expandedObjectiveId && objectives.find(o => o.id === expandedObjectiveId) && (() => {
           const activeObjective = objectives.find(o => o.id === expandedObjectiveId)!;
+          
+          let parsedTareas: any[] = [];
+          if (activeObjective.tareas_desarrollo) {
+            try {
+              const parsed = typeof activeObjective.tareas_desarrollo === 'string'
+                ? JSON.parse(activeObjective.tareas_desarrollo)
+                : activeObjective.tareas_desarrollo;
+              if (Array.isArray(parsed)) {
+                parsedTareas = parsed;
+              }
+            } catch (e) {
+              console.error("Error parseando tareas en modal progreso:", e);
+            }
+          }
+
+          // Obtener las 3 tareas más antiguas (ordenadas por fecha de forma ascendente)
+          const oldestTareas = [...parsedTareas]
+            .sort((a, b) => {
+              const timeA = a.date ? new Date(a.date).getTime() : 0;
+              const timeB = b.date ? new Date(b.date).getTime() : 0;
+              const validA = isNaN(timeA) ? 0 : timeA;
+              const validB = isNaN(timeB) ? 0 : timeB;
+              return validA - validB;
+            })
+            .slice(0, 3);
+
           return (
             <div 
               className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
@@ -324,6 +350,33 @@ export default function ProgresoPage() {
                         {activeObjective.plan_accion || <span className="italic opacity-50">No hay un plan de acción registrado para este objetivo.</span>}
                       </p>
                     </div>
+                  </div>
+
+                  {/* Tareas más antiguas */}
+                  <div className="bg-[#0a0a0b]/50 p-5 rounded-xl border border-white/5 space-y-3">
+                    <h3 className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Tareas Iniciales / Más Antiguas</h3>
+                    {oldestTareas.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {oldestTareas.map((tarea: any) => (
+                          <div 
+                            key={tarea.id} 
+                            className="bg-white/5 border border-white/5 rounded-lg p-3 flex flex-col justify-between gap-2 border-t-2 border-t-amber-500/20"
+                          >
+                            <span className={`text-xs ${tarea.completed ? 'line-through text-gray-500/70' : 'text-gray-300'}`}>
+                              {tarea.text}
+                            </span>
+                            <div className="flex items-center justify-between text-[9px] text-gray-500 mt-1 border-t border-white/5 pt-1.5 font-bold uppercase">
+                              <span>{tarea.date || 'Sin fecha'}</span>
+                              <span className={tarea.completed ? 'text-emerald-500' : 'text-amber-500'}>
+                                {tarea.completed ? 'Completado' : 'Pendiente'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500 italic">No hay tareas registradas para este objetivo.</p>
+                    )}
                   </div>
                 </div>
 

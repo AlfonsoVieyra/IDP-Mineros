@@ -87,6 +87,30 @@ export default function MediaGallery({ role, playerId, objectives, onResourceAdd
     }
   };
 
+  const handleDeleteResource = async (resourceId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!confirm("¿Estás seguro de que deseas eliminar este recurso multimedia?")) {
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('recursos_apoyo')
+        .delete()
+        .eq('id', resourceId);
+
+      if (error) throw error;
+
+      onResourceAdded();
+    } catch (error) {
+      console.error("Error al eliminar el recurso:", error);
+      alert("Error al eliminar el recurso de la base de datos.");
+    }
+  };
+
   const hasVideos = videos.length > 0;
   const hasDocs = documents.length > 0;
   const hasAnyResources = hasVideos || hasDocs;
@@ -134,35 +158,47 @@ export default function MediaGallery({ role, playerId, objectives, onResourceAdd
                 {videos.map((vid, idx) => {
                   const yId = getYoutubeId(vid.url);
                   return (
-                    <a 
-                      key={vid.id || idx} 
-                      href={vid.url} 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="group relative rounded-xl overflow-hidden bg-gray-900 border border-gray-200 dark:border-border-accent/30 aspect-video block"
-                    >
-                      {yId ? (
-                        <img 
-                          src={`https://img.youtube.com/vi/${yId}/maxresdefault.jpg`} 
-                          alt={vid.titulo}
-                          className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
-                          onError={(e) => { e.currentTarget.src = `https://img.youtube.com/vi/${yId}/hqdefault.jpg` }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
-                          Sin vista previa
-                        </div>
+                    <div key={vid.id || idx} className="relative group rounded-xl overflow-hidden bg-gray-900 border border-gray-200 dark:border-border-accent/30 aspect-video block">
+                      {/* Botón Eliminar para Entrenador */}
+                      {role === 'entrenador' && (
+                        <button
+                          onClick={(e) => handleDeleteResource(vid.id, e)}
+                          className="absolute top-3 right-3 p-1.5 bg-black/60 hover:bg-red-600 border border-white/10 hover:border-red-500 rounded text-gray-400 hover:text-white transition-all shadow-md z-20 cursor-pointer"
+                          title="Eliminar recurso"
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       )}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="bg-primary-600 w-12 h-12 rounded-full flex items-center justify-center text-white transform group-hover:scale-110 transition-transform shadow-lg">
-                          <Play fill="currentColor" size={20} className="ml-1" />
+
+                      <a 
+                        href={vid.url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="absolute inset-0 block group-hover:opacity-80 transition-opacity"
+                      >
+                        {yId ? (
+                          <img 
+                            src={`https://img.youtube.com/vi/${yId}/maxresdefault.jpg`} 
+                            alt={vid.titulo}
+                            className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
+                            onError={(e) => { e.currentTarget.src = `https://img.youtube.com/vi/${yId}/hqdefault.jpg` }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
+                            Sin vista previa
+                          </div>
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="bg-primary-600 w-12 h-12 rounded-full flex items-center justify-center text-white transform group-hover:scale-110 transition-transform shadow-lg">
+                            <Play fill="currentColor" size={20} className="ml-1" />
+                          </div>
                         </div>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 to-transparent text-white">
-                        <div className="text-[10px] text-primary-400 font-bold uppercase mb-0.5 line-clamp-1">{vid.objetivo_titulo}</div>
-                        <div className="font-semibold text-sm line-clamp-1">{vid.titulo}</div>
-                      </div>
-                    </a>
+                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 to-transparent text-white">
+                          <div className="text-[10px] text-primary-400 font-bold uppercase mb-0.5 line-clamp-1">{vid.objetivo_titulo}</div>
+                          <div className="font-semibold text-sm line-clamp-1">{vid.titulo}</div>
+                        </div>
+                      </a>
+                    </div>
                   );
                 })}
               </div>
@@ -178,23 +214,34 @@ export default function MediaGallery({ role, playerId, objectives, onResourceAdd
                   <h3 className="font-bold uppercase text-gray-500 text-sm">Documentos y Archivos</h3>
                   <div className="space-y-3">
                     {documents.map((doc, idx) => (
-                      <a 
-                        key={doc.id || idx}
-                        href={doc.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-4 p-3 bg-white dark:bg-card border border-gray-200 dark:border-border-accent/30 rounded-lg hover:border-primary-500 dark:hover:border-primary-500 transition-colors group"
-                      >
-                        <div className="w-10 h-10 rounded bg-gray-100 dark:bg-background flex items-center justify-center shrink-0">
-                          {getIcon(doc.tipo)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[10px] text-primary-600 dark:text-primary-400 font-bold uppercase line-clamp-1">{doc.objetivo_titulo}</div>
-                          <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                            {doc.titulo}
+                      <div key={doc.id || idx} className="relative group/doc flex items-center justify-between bg-white dark:bg-card border border-gray-200 dark:border-border-accent/30 rounded-lg hover:border-primary-500 dark:hover:border-primary-500 transition-colors">
+                        <a 
+                          href={doc.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-4 p-3 flex-1 min-w-0 group"
+                        >
+                          <div className="w-10 h-10 rounded bg-gray-100 dark:bg-background flex items-center justify-center shrink-0">
+                            {getIcon(doc.tipo)}
                           </div>
-                        </div>
-                      </a>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[10px] text-primary-600 dark:text-primary-400 font-bold uppercase line-clamp-1">{doc.objetivo_titulo}</div>
+                            <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                              {doc.titulo}
+                            </div>
+                          </div>
+                        </a>
+                        
+                        {role === 'entrenador' && (
+                          <button
+                            onClick={(e) => handleDeleteResource(doc.id, e)}
+                            className="mr-3 p-2 bg-transparent hover:bg-red-500/10 hover:text-red-500 rounded text-gray-400 hover:border-red-500/20 transition-all cursor-pointer border border-transparent"
+                            title="Eliminar recurso"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>

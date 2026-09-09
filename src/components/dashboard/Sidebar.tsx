@@ -14,10 +14,12 @@ interface SidebarProps {
 }
 
 const filters = ['TODOS', 'PORTERO', 'DEFENSA', 'CENTROCAMPISTA', 'DELANTERO'];
+const teamFilters = ['TODOS', 'PREMIER', 'TDP'];
 
 export default function Sidebar({ players, selectedPlayerId, onSelectPlayer, onNewPlayer, className = '' }: SidebarProps) {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('TODOS');
+  const [activeTeamFilter, setActiveTeamFilter] = useState('TODOS');
   const [userName, setUserName] = useState<string>('');
   const [userRole, setUserRole] = useState<string>('');
   const [userInitial, setUserInitial] = useState<string>('N');
@@ -29,7 +31,9 @@ export default function Sidebar({ players, selectedPlayerId, onSelectPlayer, onN
     
     const matchSearch = fullName.includes(searchLower) || equipo.includes(searchLower);
     const matchFilter = activeFilter === 'TODOS' || p.plantilla?.demarcacion?.toUpperCase() === activeFilter;
-    return matchSearch && matchFilter;
+    const matchTeamFilter = activeTeamFilter === 'TODOS' || p.plantilla?.equipo?.toUpperCase() === activeTeamFilter;
+    
+    return matchSearch && matchFilter && matchTeamFilter;
   });
 
   useEffect(() => {
@@ -70,15 +74,30 @@ export default function Sidebar({ players, selectedPlayerId, onSelectPlayer, onN
           </button>
         </div>
         
-        <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input 
-            type="text"
-            placeholder="Buscar jugador..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#1c2136] border border-white/10 rounded-md py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder-gray-500 transition-shadow"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input 
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-[#1c2136] border border-white/10 rounded-md py-2 pl-9 pr-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder-gray-500 transition-shadow"
+            />
+          </div>
+          <div className="shrink-0">
+            <select
+              value={activeTeamFilter}
+              onChange={(e) => setActiveTeamFilter(e.target.value)}
+              className={`bg-[#1c2136] outline-none text-[10px] font-bold px-2 py-2 rounded border-2 transition-all cursor-pointer ${activeTeamFilter !== 'TODOS' ? 'text-blue-500 border-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.2)]' : 'text-gray-400 border-white/10 hover:border-white/30 hover:text-white'}`}
+            >
+              {teamFilters.map(f => (
+                <option key={f} value={f} className="bg-[#1c2136] text-white font-bold">
+                  {f === 'TODOS' ? 'EQUIPO: TODOS' : f}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-1.5">

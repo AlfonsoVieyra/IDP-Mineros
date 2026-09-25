@@ -49,7 +49,27 @@ export default function ProgresoPage() {
           if (playersData && playersData.length > 0) {
             const pData = playersData as any[];
             setPlayers(pData);
-            setSelectedPlayerId(pData[0].id);
+
+            let initialTeam = 'ALL';
+            let initialPlayer = pData[0].id;
+            
+            if (typeof window !== 'undefined') {
+              const savedTeam = localStorage.getItem('idp_team_filter');
+              if (savedTeam && savedTeam !== 'TODOS') {
+                const matched = pData.find(p => {
+                  const pArr = Array.isArray(p.plantilla) ? p.plantilla : [p.plantilla];
+                  const eq = (pArr[0]?.equipo || '').toUpperCase();
+                  return eq === savedTeam || eq.includes(savedTeam);
+                });
+                if (matched) {
+                  const pArr = Array.isArray(matched.plantilla) ? matched.plantilla : [matched.plantilla];
+                  initialTeam = pArr[0]?.equipo || savedTeam;
+                  initialPlayer = matched.id;
+                }
+              }
+            }
+            setSelectedTeam(initialTeam);
+            setSelectedPlayerId(initialPlayer);
           }
         } else {
           // Jugador solo se ve a sí mismo
@@ -98,17 +118,20 @@ export default function ProgresoPage() {
   const filteredPlayersByTeam = players.filter(p => {
     if (selectedTeam === 'ALL') return true;
     const pArr = Array.isArray(p.plantilla) ? p.plantilla : [p.plantilla];
-    const playerTeam = pArr[0]?.equipo || 'Sin Equipo';
-    return playerTeam === selectedTeam;
+    const playerTeam = (pArr[0]?.equipo || 'Sin Equipo').toUpperCase();
+    return playerTeam === selectedTeam.toUpperCase() || playerTeam.includes(selectedTeam.toUpperCase());
   });
 
   const handleTeamChange = (team: string) => {
     setSelectedTeam(team);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('idp_team_filter', team === 'ALL' ? 'TODOS' : team.toUpperCase());
+    }
     const filtered = players.filter(p => {
       if (team === 'ALL') return true;
       const pArr = Array.isArray(p.plantilla) ? p.plantilla : [p.plantilla];
-      const playerTeam = pArr[0]?.equipo || 'Sin Equipo';
-      return playerTeam === team;
+      const playerTeam = (pArr[0]?.equipo || 'Sin Equipo').toUpperCase();
+      return playerTeam === team.toUpperCase() || playerTeam.includes(team.toUpperCase());
     });
     if (filtered.length > 0) {
       const currentIsStillIn = filtered.some(p => p.id === selectedPlayerId);

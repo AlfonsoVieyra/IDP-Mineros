@@ -89,9 +89,21 @@ export default function Home() {
         }));
         
         setPlayers(formattedPlayers);
-        if (formattedPlayers.length > 0 && !selectedPlayerId) {
-          setSelectedPlayerId(formattedPlayers[0].id);
-        }
+        setSelectedPlayerId(prev => {
+          if (prev && formattedPlayers.some(p => p.id === prev)) return prev;
+          let defaultId = formattedPlayers[0]?.id || null;
+          if (typeof window !== 'undefined') {
+            const savedTeam = localStorage.getItem('idp_team_filter');
+            if (savedTeam && savedTeam !== 'TODOS') {
+              const matched = formattedPlayers.find(p => {
+                const eq = (p.plantilla?.equipo || '').toUpperCase();
+                return eq === savedTeam || eq.includes(savedTeam);
+              });
+              if (matched) defaultId = matched.id;
+            }
+          }
+          return defaultId;
+        });
       } else {
         // Si no hay datos (o RLS los bloquea), dejamos la lista vacía
         console.warn("No se encontraron jugadores en Supabase o RLS bloqueó la consulta.");
@@ -106,7 +118,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, selectedPlayerId]);
+  }, [supabase, router]);
 
   useEffect(() => {
     loadPlayers();

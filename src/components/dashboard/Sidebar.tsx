@@ -13,7 +13,13 @@ interface SidebarProps {
   className?: string;
 }
 
-const filters = ['TODOS', 'PORTERO', 'DEFENSA', 'CENTROCAMPISTA', 'DELANTERO'];
+const positionFilters = [
+  { label: 'Todos', value: 'TODOS' },
+  { label: 'Por', value: 'PORTERO' },
+  { label: 'Def', value: 'DEFENSA' },
+  { label: 'Med', value: 'CENTROCAMPISTA' },
+  { label: 'Del', value: 'DELANTERO' }
+];
 const teamFilters = ['TODOS', 'PREMIER', 'TDP'];
 
 export default function Sidebar({ players, selectedPlayerId, onSelectPlayer, onNewPlayer, className = '' }: SidebarProps) {
@@ -24,14 +30,43 @@ export default function Sidebar({ players, selectedPlayerId, onSelectPlayer, onN
   const [userRole, setUserRole] = useState<string>('');
   const [userInitial, setUserInitial] = useState<string>('N');
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('idp_team_filter');
+      if (saved && (saved === 'TODOS' || saved === 'PREMIER' || saved === 'TDP')) {
+        setActiveTeamFilter(saved);
+      }
+    }
+  }, []);
+
+  const handleTeamFilterChange = (val: string) => {
+    setActiveTeamFilter(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('idp_team_filter', val);
+    }
+    if (val !== 'TODOS') {
+      const remaining = players.filter(p => {
+        const equipo = (p.plantilla?.equipo || '').toUpperCase();
+        return equipo === val || equipo.includes(val);
+      });
+      if (remaining.length > 0) {
+        const currentStillMatches = remaining.some(p => p.id === selectedPlayerId);
+        if (!currentStillMatches) {
+          onSelectPlayer(remaining[0].id);
+        }
+      }
+    }
+  };
+
   const filteredPlayers = players.filter(p => {
     const searchLower = search.toLowerCase();
     const fullName = `${p.nombre || ''} ${p.apellidos || ''}`.toLowerCase();
     const equipo = (p.plantilla?.equipo || '').toLowerCase();
+    const equipoUpper = (p.plantilla?.equipo || '').toUpperCase();
     
     const matchSearch = fullName.includes(searchLower) || equipo.includes(searchLower);
     const matchFilter = activeFilter === 'TODOS' || p.plantilla?.demarcacion?.toUpperCase() === activeFilter;
-    const matchTeamFilter = activeTeamFilter === 'TODOS' || p.plantilla?.equipo?.toUpperCase() === activeTeamFilter;
+    const matchTeamFilter = activeTeamFilter === 'TODOS' || equipoUpper === activeTeamFilter || equipoUpper.includes(activeTeamFilter);
     
     return matchSearch && matchFilter && matchTeamFilter;
   });
@@ -88,7 +123,7 @@ export default function Sidebar({ players, selectedPlayerId, onSelectPlayer, onN
           <div className="shrink-0">
             <select
               value={activeTeamFilter}
-              onChange={(e) => setActiveTeamFilter(e.target.value)}
+              onChange={(e) => handleTeamFilterChange(e.target.value)}
               className={`bg-[#1c2136] outline-none text-[10px] font-bold px-2 py-2 rounded border-2 transition-all cursor-pointer ${activeTeamFilter !== 'TODOS' ? 'text-blue-500 border-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.2)]' : 'text-gray-400 border-white/10 hover:border-white/30 hover:text-white'}`}
             >
               {teamFilters.map(f => (
@@ -100,14 +135,14 @@ export default function Sidebar({ players, selectedPlayerId, onSelectPlayer, onN
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
-          {filters.map(f => (
+        <div className="grid grid-cols-5 gap-1.5 w-full">
+          {positionFilters.map(item => (
             <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              className={`text-[10px] font-bold px-2.5 py-1 rounded border-2 transition-all ${activeFilter === f ? 'bg-transparent text-primary-500 border-primary-500 shadow-[0_0_8px_rgba(212,64,99,0.2)]' : 'bg-transparent text-gray-400 border-white/10 hover:border-white/30 hover:text-white'}`}
+              key={item.value}
+              onClick={() => setActiveFilter(item.value)}
+              className={`text-[10px] font-bold py-1 px-1 rounded border-2 text-center transition-all truncate ${activeFilter === item.value ? 'bg-transparent text-primary-500 border-primary-500 shadow-[0_0_8px_rgba(212,64,99,0.2)]' : 'bg-transparent text-gray-400 border-white/10 hover:border-white/30 hover:text-white'}`}
             >
-              {f}
+              {item.label}
             </button>
           ))}
         </div>

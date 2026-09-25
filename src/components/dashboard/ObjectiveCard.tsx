@@ -91,15 +91,7 @@ export default function ObjectiveCard({ objective, onEdit }: ObjectiveCardProps)
         </div>
       </div>
 
-      <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-lg mb-5 border border-gray-100 dark:border-white/5">
-        <div className="flex justify-between items-center mb-1 text-[10px] font-bold text-orange-500 uppercase tracking-wider">
-          <span>ÚLTIMO INFORME</span>
-          <span>{objective.updated_at.split('T')[0]}</span>
-        </div>
-        <p className="text-xs italic text-gray-600 dark:text-gray-400 line-clamp-2">
-          &quot;Se observa mejora en el timing. El jugador ha reducido los fueras de juego en un 20% en los partidos de práctica...&quot;
-        </p>
-      </div>
+
 
       <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/5">
         <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 font-medium">
